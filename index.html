@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>학교 대회 사이트</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>학교 대회 사이트</h1>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#announcements">공지</a>
+      <a href="#teams">팀</a>
+      <a href="#schedule">일정</a>
+      <a href="#contact">문의</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home" class="card">
+      <h2>환영합니다</h2>
+      <p>여기는 우리 팀의 대회용 공식 ��이지입니다. 공지, 팀 소개, 일정 등을 확인하세요.</p>
+    </section>
+
+    <section id="announcements" class="card">
+      <div class="section-header">
+        <h2>공지사항</h2>
+        <button id="add-ann-btn">공지 추가</button>
+      </div>
+      <ul id="ann-list" class="list"></ul>
+      <p class="hint">공지사항은 이 브라우저에만 저장됩니다(간단 테스트용). 서버 연동 원하면 알려주세요.</p>
+    </section>
+
+    <section id="teams" class="card">
+      <h2>팀 소개</h2>
+      <div class="grid" id="team-grid">
+        <div class="team">
+          <h3>팀 A</h3>
+          <p>팀장: 홍길동</p>
+          <p>주요 역할: 프론트엔드</p>
+        </div>
+        <div class="team">
+          <h3>팀 B</h3>
+          <p>팀장: 김영희</p>
+          <p>주요 역할: 백엔드</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="schedule" class="card">
+      <h2>대회 일정</h2>
+      <table>
+        <thead><tr><th>날짜</th><th>일정</th></tr></thead>
+        <tbody>
+          <tr><td>2026-08-01</td><td>예선 제출 마감</td></tr>
+          <tr><td>2026-08-10</td><td>본선 발표</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="contact" class="card">
+      <h2>문의</h2>
+      <form id="contact-form">
+        <label>이름<br><input type="text" id="contact-name" required></label><br>
+        <label>내용<br><textarea id="contact-msg" rows="4" required></textarea></label><br>
+        <button type="submit">보내기 (메일 열기)</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>간단한 테스트용 사이트 — GitHub Pages로 배포 가능</small>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
