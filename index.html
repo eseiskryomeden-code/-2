@@ -12,7 +12,7 @@
     <nav>
       <a href="#home">Home</a>
       <a href="#announcements">공지</a>
-      <a href="#teams">팀</a>
+      <a href="#survey">설문</a>
       <a href="#schedule">일정</a>
       <a href="#contact">문의</a>
     </nav>
@@ -21,7 +21,7 @@
   <main>
     <section id="home" class="card">
       <h2>환영합니다</h2>
-      <p>여기는 우리 팀의 대회용 공식 ��이지입니다. 공지, 팀 소개, 일정 등을 확인하세요.</p>
+      <p>여기는 우리 팀의 대회용 공식 페이지입니다. 공지, 설문, 일정 등을 확인하세요.</p>
     </section>
 
     <section id="announcements" class="card">
@@ -33,20 +33,25 @@
       <p class="hint">공지사항은 이 브라우저에만 저장됩니다(간단 테스트용). 서버 연동 원하면 알려주세요.</p>
     </section>
 
-    <section id="teams" class="card">
-      <h2>팀 소개</h2>
-      <div class="grid" id="team-grid">
-        <div class="team">
-          <h3>팀 A</h3>
-          <p>팀장: 홍길동</p>
-          <p>주요 역할: 프론트엔드</p>
-        </div>
-        <div class="team">
-          <h3>팀 B</h3>
-          <p>팀장: 김영희</p>
-          <p>주요 역할: 백엔드</p>
-        </div>
-      </div>
+    <section id="survey" class="card">
+      <h2>설문조사</h2>
+      <form id="survey-form">
+        <label>이름 (선택)<br><input type="text" id="survey-name" placeholder="이름"></label><br>
+        <label>만족도<br>
+          <select id="survey-rating" required>
+            <option value="">선택하세요</option>
+            <option value="5">5 - 매우 만족</option>
+            <option value="4">4 - 만족</option>
+            <option value="3">3 - 보통</option>
+            <option value="2">2 - 불만족</option>
+            <option value="1">1 - 매우 불만족</option>
+          </select>
+        </label><br>
+        <label>의견 (선택)<br><textarea id="survey-comment" rows="3" placeholder="자유롭게 적어주세요"></textarea></label><br>
+        <button type="submit">설문 제출</button>
+      </form>
+      <div id="survey-result" class="hint"></div>
+      <p class="hint">참고: 현재 설문은 서버 없이 이 브라우저에 저장됩니다. 여러 사람 응답을 모으려면 Google Form 또는 Firebase 연동을 추천합니다.</p>
     </section>
 
     <section id="schedule" class="card">
