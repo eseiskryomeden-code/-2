@@ -597,3 +597,197 @@ renderAnns();
 updateSurveySummary();
 renderGrades();
 updateAuthUI();
+// script.js
+// Client-side site logic: announcements, survey, contact, grades + signup/login with password policy
+
+// --- storage keys & settings ---
+const ANN_KEY = 'school_site_announcements_v1';
+const SURVEY_KEY = 'school_site_survey_v1';
+const GRADES_KEY = 'school_site_grades_v1';
+const USERS_KEY = 'school_site_users_v1';
+const SESSION_KEY = 'school_site_session_v1';
+const TEACHER_SIGNUP_CODE = 'TEACHER2026'; // 필요시 변경
+
+// --- utils ---
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function hashPassword(password){
+  const enc = new TextEncoder();
+  const data = enc.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// password policy: 최소 4자, 영문자 1개 이상, 특수문자 1개 이상
+function passwordValid(pw){
+  if(typeof pw !== 'string') return false;
+  if(pw.length < 4) return false;
+  if(!/[A-Za-z]/.test(pw)) return false;
+  if(!/[^A-Za-z0-9]/.test(pw)) return false;
+  return true;
+}
+
+// --- user/session helpers ---
+function loadUsers(){ const raw = localStorage.getItem(USERS_KEY); return raw ? JSON.parse(raw) : []; }
+function saveUsers(arr){ localStorage.setItem(USERS_KEY, JSON.stringify(arr)); }
+function getSession(){ const raw = localStorage.getItem(SESSION_KEY); return raw ? JSON.parse(raw) : null; }
+function setSession(obj){ if(obj) localStorage.setItem(SESSION_KEY, JSON.stringify(obj)); else localStorage.removeItem(SESSION_KEY); }
+
+async function signup({username, nickname, password, role, teacherCode}){
+  username = (username||'').trim();
+  if(!username) throw new Error('아이디를 입력하세요.');
+  if(!password) throw new Error('비밀번호를 입력하세요.');
+  if(!passwordValid(password)) throw new Error('비밀번호는 최소 4자이며, 영문자 1개 이상과 특수문자 1개 이상을 포함해야 합니다.');
+  const users = loadUsers();
+  if(users.find(u => u.username === username)) throw new Error('이미 존재하는 아이디입니다.');
+  if(role === 'teacher'){
+    if(typeof teacherCode !== 'string' || teacherCode.trim() !== TEACHER_SIGNUP_CODE){
+      throw new Error('유효한 교사 가입 코드가 필요합니다.');
+    }
+  }
+  const hash = await hashPassword(password);
+  users.push({ username, nickname: nickname || username, passwordHash: hash, role });
+  saveUsers(users);
+  // 자동 로그인
+  setSession({ username, nickname: nickname || username, role });
+  return { username, nickname: nickname || username, role };
+}
+
+async function login({username, password}){
+  username = (username||'').trim();
+  if(!username) throw new Error('아이디를 입력하세요.');
+  if(!password) throw new Error('비밀번호를 입력하세요.');
+  const users = loadUsers();
+  const u = users.find(x => x.username === username);
+  if(!u) throw new Error('아이디가 없습니다.');
+  const hash = await hashPassword(password);
+  if(hash !== u.passwordHash) throw new Error('비밀번호가 일치하지 않습니다.');
+  setSession({ username: u.username, nickname: u.nickname, role: u.role });
+  return { username: u.username, nickname: u.nickname, role: u.role };
+}
+function logout(){ setSession(null); }
+
+// --- DOM elements ---
+const annListEl = document.getElementById('ann-list');
+const addAnnBtn = document.getElementById('add-ann-btn');
+const surveyForm = document.getElementById('survey-form');
+const surveyResultDiv = document.getElementById('survey-result');
+const contactForm = document.getElementById('contact-form');
+const gradeListEl = document.getElementById('grade-list');
+const gradeAdminEl = document.getElementById('grade-admin');
+const gradeForm = document.getElementById('grade-form');
+
+// auth panels (login/signup separate)
+const loginUsernameEl = document.getElementById('login-username');
+const loginPasswordEl = document.getElementById('login-password');
+const loginBtn = document.getElementById('login-btn');
+const adminLogoutBtn = document.getElementById('admin-logout-btn');
+const authInfoEl = document.getElementById('auth-info');
+
+const signupUsernameEl = document.getElementById('signup-username');
+const signupNicknameEl = document.getElementById('signup-nickname');
+const signupPasswordEl = document.getElementById('signup-password');
+const signupPasswordConfirmEl = document.getElementById('signup-password-confirm');
+const signupRoleEl = document.getElementById('signup-role');
+const signupBtn = document.getElementById('signup-btn');
+const signupTeacherCodeEl = document.getElementById('signup-teacher-code'); // optional
+
+// --- announcements ---
+function loadAnns(){ const raw = localStorage.getItem(ANN_KEY); return raw ? JSON.parse(raw) : []; }
+function saveAnns(list){ localStorage.setItem(ANN_KEY, JSON.stringify(list)); }
+function renderAnns(){
+  if(!annListEl) return;
+  const list = loadAnns(); annListEl.innerHTML = '';
+  if(list.length === 0){ annListEl.innerHTML = '<li>등록된 공지사항이 없습니다.</li>'; return; }
+  list.slice().reverse().forEach(a => {
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>${escapeHtml(a.title)}</strong> <div class="small">${escapeHtml(a.time)}</div><div>${escapeHtml(a.text)}</div>`;
+    annListEl.appendChild(li);
+  });
+}
+addAnnBtn && addAnnBtn.addEventListener('click', ()=>{ const title = prompt('공지 제목을 입력하세요:'); if(!title) return; const text = prompt('공지 내용을 입력하세요:'); if(text === null) return; const list = loadAnns(); list.push({title:title.trim(), text:text.trim(), time:new Date().toLocaleString()}); saveAnns(list); renderAnns(); });
+
+// --- survey ---
+function loadSurvey(){ const raw = localStorage.getItem(SURVEY_KEY); return raw ? JSON.parse(raw) : []; }
+function saveSurvey(arr){ localStorage.setItem(SURVEY_KEY, JSON.stringify(arr)); }
+function updateSurveySummary(){ const arr = loadSurvey(); if(!surveyResultDiv) return; if(arr.length===0){ surveyResultDiv.textContent='응답이 없습니다.'; return; } const counts={1:0,2:0,3:0,4:0,5:0}; arr.forEach(r=>counts[r.rating]=(counts[r.rating]||0)+1); surveyResultDiv.innerHTML=`총 응답: ${arr.length}<br>5:${counts[5]} | 4:${counts[4]} | 3:${counts[3]} | 2:${counts[2]} | 1:${counts[1]}<div style="margin-top:8px;">최근: ${escapeHtml(arr.slice(-1)[0].name||'익명')} - ${arr.slice(-1)[0].rating}</div>`; }
+if(surveyForm){ surveyForm.addEventListener('submit', e=>{ e.preventDefault(); const name = document.getElementById('survey-name').value.trim(); const rating = document.getElementById('survey-rating').value; const comment = document.getElementById('survey-comment').value.trim(); if(!rating){ alert('만족도를 선택하세요.'); return; } const arr = loadSurvey(); arr.push({name:name||'익명', rating:rating, comment:comment, time:new Date().toLocaleString()}); saveSurvey(arr); updateSurveySummary(); surveyForm.reset(); alert('설문 제출 완료'); }); }
+
+// --- contact ---
+if(contactForm){ contactForm.addEventListener('submit', e=>{ e.preventDefault(); const name = document.getElementById('contact-name').value || '이름없음'; const msg = document.getElementById('contact-msg').value || ''; const subject = encodeURIComponent(`[대회 문의] ${name}`); const body = encodeURIComponent(msg + "\n\n- " + name); window.location.href = `mailto:youremail@example.com?subject=${subject}&body=${body}`; }); }
+
+// --- grades ---
+function loadGrades(){ const raw = localStorage.getItem(GRADES_KEY); return raw ? JSON.parse(raw) : []; }
+function saveGrades(arr){ localStorage.setItem(GRADES_KEY, JSON.stringify(arr)); }
+function renderGrades(){
+  if(!gradeListEl) return;
+  const arr = loadGrades(); gradeListEl.innerHTML = '';
+  if(arr.length === 0){ gradeListEl.innerHTML = '<div class="hint">등록된 게시글이 없습니다.</div>'; return; }
+  arr.slice().reverse().forEach((g, idxRev)=>{ const idx = arr.length-1-idxRev; const item = document.createElement('div'); item.className='grade-item'; item.innerHTML = `<h4>${escapeHtml(g.title)} <small style="font-weight:600;color:#6b7280">${escapeHtml(g.subject)}</small></h4><div>${escapeHtml(g.desc)}</div><div class="hint">제출기한: ${g.due||'없음'} | 작성자: ${escapeHtml(g.author||'관리자')} | ${g.time}</div>`; const s = getSession(); const isTeacher = s && s.role==='teacher'; const isAuthor = s && s.username===g.author; if(isTeacher || isAuthor){ const del = document.createElement('button'); del.textContent='삭제'; del.style.marginTop='6px'; del.addEventListener('click', ()=>{ if(confirm('삭제하시겠습니까?')){ deleteGrade(idx); } }); item.appendChild(del); const edit = document.createElement('button'); edit.textContent='수정'; edit.style.margin='6px'; edit.addEventListener('click', ()=>{ editGrade(idx); }); item.appendChild(edit); } gradeListEl.appendChild(item); });
+}
+function addGrade(obj){ const arr = loadGrades(); arr.push(obj); saveGrades(arr); renderGrades(); }
+function deleteGrade(i){ const arr = loadGrades(); arr.splice(i,1); saveGrades(arr); renderGrades(); }
+function editGrade(i){ const arr = loadGrades(); const g = arr[i]; const title = prompt('제목', g.title); if(title===null) return; const subject = prompt('과목', g.subject); if(subject===null) return; const desc = prompt('내용', g.desc); if(desc===null) return; const due = prompt('제출기한 (YYYY-MM-DD 또는 빈칸)', g.due||''); arr[i] = {...g, title:title.trim(), subject:subject.trim(), desc:desc.trim(), due: due||null}; saveGrades(arr); renderGrades(); }
+if(gradeForm){ gradeForm.addEventListener('submit', e=>{ e.preventDefault(); const s = getSession(); if(!s || s.role !== 'teacher'){ alert('교사 계정으로 로그인해야 작성할 수 있습니다.'); return; } const title = document.getElementById('grade-title').value.trim(); const subject = document.getElementById('grade-subject').value.trim(); const desc = document.getElementById('grade-desc').value.trim(); const due = document.getElementById('grade-due').value || null; addGrade({ title, subject, desc, due, author: s.username, time: new Date().toLocaleString() }); gradeForm.reset(); }); }
+
+// --- auth UI behaviors ---
+async function updateAuthUI(){
+  const s = getSession();
+  if(s){
+    authInfoEl.textContent = `${escapeHtml(s.nickname)} (${escapeHtml(s.role)})`;
+    loginBtn.style.display = 'none';
+    adminLogoutBtn.style.display = 'inline-block';
+    if(s.role === 'teacher') gradeAdminEl.style.display = 'block'; else gradeAdminEl.style.display = 'none';
+  } else {
+    authInfoEl.textContent = '';
+    loginBtn.style.display = 'inline-block';
+    adminLogoutBtn.style.display = 'none';
+    gradeAdminEl.style.display = 'none';
+  }
+}
+
+// signup handler — form에 교사코드 입력칸이 있으면 그 값을 사용, 없으면 prompt로 묻도록 이미 지원
+if(signupBtn){
+  signupBtn.addEventListener('click', async ()=>{
+    try{
+      const username = signupUsernameEl.value.trim();
+      const nickname = signupNicknameEl.value.trim();
+      const pw = signupPasswordEl.value;
+      const pw2 = signupPasswordConfirmEl.value;
+      const role = signupRoleEl.value;
+      if(pw !== pw2) { alert('비밀번호가 일치하지 않습니다.'); return; }
+      let teacherCode = null;
+      if(role === 'teacher'){
+        teacherCode = (signupTeacherCodeEl && signupTeacherCodeEl.value) ? signupTeacherCodeEl.value.trim() : prompt('교사 가입 코드를 입력하세요:');
+      }
+      await signup({ username, nickname, password: pw, role, teacherCode });
+      alert('회원가입 완료 및 로그인 되었습니다.');
+      signupUsernameEl.value=''; signupNicknameEl.value=''; signupPasswordEl.value=''; signupPasswordConfirmEl.value=''; if(signupTeacherCodeEl) signupTeacherCodeEl.value='';
+      await updateAuthUI(); renderGrades();
+    }catch(err){ alert(err.message || String(err)); }
+  });
+}
+
+// login handler
+if(loginBtn){
+  loginBtn.addEventListener('click', async ()=>{
+    try{
+      const username = loginUsernameEl.value.trim();
+      const pw = loginPasswordEl.value;
+      await login({ username, password: pw });
+      alert('로그인 성공');
+      loginUsernameEl.value=''; loginPasswordEl.value='';
+      await updateAuthUI(); renderGrades();
+    }catch(err){ alert(err.message || String(err)); }
+  });
+}
+
+// logout
+if(adminLogoutBtn){
+  adminLogoutBtn.addEventListener('click', ()=>{ logout(); updateAuthUI(); renderGrades(); });
+}
+
+// init
+renderAnns();
+updateSurveySummary();
+renderGrades();
+updateAuthUI();
