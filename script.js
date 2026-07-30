@@ -72,3 +72,34 @@ function updateAdminUI(){ const el = document.getElementById('grade-admin'); if(
   logout.addEventListener('click', ()=>{ setAdmin(false); login.style.display='inline-block'; logout.style.display='none'; alert('로그아웃'); });
   if(isAdmin()){ login.style.display='none'; logout.style.display='inline-block'; }
 })();
+// script.js
+// Announcements, Survey, Contact, Grades + Client-side Signup/Login (localStorage + SHA-256 hash)
+
+// ----- 설정 -----
+const ANN_KEY = 'school_site_announcements_v1';
+const SURVEY_KEY = 'school_site_survey_v1';
+const GRADES_KEY = 'school_site_grades_v1';
+const USERS_KEY = 'school_site_users_v1';
+const SESSION_KEY = 'school_site_session_v1';
+
+// 교사(teacher)로 가입하려면 필요한 코드 (원하면 바꿔서 배포)
+const TEACHER_SIGNUP_CODE = 'TEACHER2026';
+
+// ----- 유틸 -----
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// SHA-256 해시(문자열 입력 -> hex 문자열 반환)
+async function hashPassword(password){
+  const enc = new TextEncoder();
+  const data = enc.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ----- 사용자/세션 관리 (localStorage) -----
+function loadUsers(){ const raw = localStorage.getItem(USERS_KEY); return raw ? JSON.parse(raw) : []; }
+function saveUsers(arr){ localStorage.setItem(USERS_KEY, JSON.stringify(arr)); }
+
+function getSession(){ const raw = localStorage.getItem(SESSION_KEY); return raw ?
+
