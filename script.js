@@ -51,3 +51,24 @@ contactForm && contactForm.addEventListener('submit', e => {
 });
 
 renderAnns();
+// 임시 관리자 로그인 (테스트용)
+const ADMIN_PASSWORD = 'pass1234';
+function isAdmin(){ return sessionStorage.getItem('isAdmin') === '1'; }
+function setAdmin(flag){ sessionStorage.setItem('isAdmin', flag ? '1' : '0'); updateAdminUI(); }
+// 기존에 grade-admin 요소가 있으면 보여주고, 아니면 숨김 처리
+function updateAdminUI(){ const el = document.getElementById('grade-admin'); if(!el) return; if(isAdmin()) el.style.display='block'; else el.style.display='none'; }
+// 간단 로그인 버튼 삽입(grade-list 바로 위)
+(function addTempAdminButtons(){
+  const gradeList = document.getElementById('grade-list'); if(!gradeList) return;
+  const wrap = document.createElement('div'); wrap.style.margin='8px 0';
+  const login = document.createElement('button'); login.textContent='임시 관리자 로그인';
+  const logout = document.createElement('button'); logout.textContent='임시 관리자 로그아웃'; logout.style.display='none';
+  wrap.appendChild(login); wrap.appendChild(logout);
+  gradeList.parentNode.insertBefore(wrap, gradeList);
+  login.addEventListener('click', ()=>{
+    const pw = prompt('관리자 비밀번호 입력:');
+    if(pw === ADMIN_PASSWORD){ setAdmin(true); login.style.display='none'; logout.style.display='inline-block'; alert('관리자 로그인 성공'); } else alert('비밀번호 틀림');
+  });
+  logout.addEventListener('click', ()=>{ setAdmin(false); login.style.display='inline-block'; logout.style.display='none'; alert('로그아웃'); });
+  if(isAdmin()){ login.style.display='none'; logout.style.display='inline-block'; }
+})();
