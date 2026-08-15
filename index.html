@@ -126,11 +126,14 @@
             <button id="board-dislike-btn" class="secondary" type="button">싫어요 💔</button>
             <span id="board-dislike-count" class="board-meta"></span>
           </div>
-          <form id="board-comment-form" class="board-form board-form--inline">
-            <textarea id="board-comment-input" rows="2" placeholder="댓글을 입력하세요" required></textarea>
-            <button type="submit">댓글 작성</button>
-          </form>
-          <ul id="board-comment-list" class="comment-list"></ul>
+          <div class="comments-section">
+            <h4>댓글 (<span id="board-comment-count">0</span>)</h4>
+            <form id="board-comment-form" class="board-form board-form--inline">
+              <textarea id="board-comment-input" rows="3" placeholder="댓글을 입력하세요" required></textarea>
+              <button type="submit">댓글 작성</button>
+            </form>
+            <ul id="board-comment-list" class="comment-list"></ul>
+          </div>
           <form id="board-edit-form" class="board-form board-form--inline" hidden>
             <input id="board-edit-title" name="board-edit-title" type="text" placeholder="수정할 제목" required />
             <textarea id="board-edit-content" name="board-edit-content" rows="4" placeholder="수정할 내용" required></textarea>

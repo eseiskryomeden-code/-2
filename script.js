@@ -310,13 +310,15 @@ function renderComments(post){
   if(!boardCommentListEl) return;
   boardCommentListEl.innerHTML = '';
   const comments = post.comments || [];
+  const commentCountEl = document.getElementById('board-comment-count');
+  if(commentCountEl) commentCountEl.textContent = comments.length;
   if(comments.length === 0){
-    boardCommentListEl.innerHTML = '<li>아직 댓글이 없습니다.</li>';
+    boardCommentListEl.innerHTML = '<li style="background:#fff;border-left:none;color:var(--muted);">아직 댓글이 없습니다.</li>';
     return;
   }
   comments.forEach(comment => {
     const li = document.createElement('li');
-    li.innerHTML = `<strong>${escapeHtml(comment.author)}</strong> · ${escapeHtml(comment.time)}<div>${escapeHtml(comment.text)}</div>`;
+    li.innerHTML = `<strong>${escapeHtml(comment.author)}</strong><span style="color:var(--muted);"> · ${escapeHtml(comment.time)}</span><div>${escapeHtml(comment.text)}</div>`;
     boardCommentListEl.appendChild(li);
   });
 }
