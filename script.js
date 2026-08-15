@@ -65,6 +65,8 @@ const boardCommentInputEl = document.getElementById('board-comment-input');
 const boardCommentListEl = document.getElementById('board-comment-list');
 const boardLikeBtn = document.getElementById('board-like-btn');
 const boardLikeCountEl = document.getElementById('board-like-count');
+const boardDislikeBtn = document.getElementById('board-dislike-btn');
+const boardDislikeCountEl = document.getElementById('board-dislike-count');
 let currentBoardPostId = null;
 
 function loadAnns(){
@@ -293,6 +295,12 @@ function renderBoardDetail(post){
     const liked = auth && post.likes && post.likes.includes(auth.username);
     boardLikeBtn.textContent = liked ? '좋아요 취소 💔' : '좋아요 ❤️';
   }
+  const dislikeCount = post.dislikes ? post.dislikes.length : 0;
+  if(boardDislikeCountEl){ boardDislikeCountEl.textContent = `싫어요 ${dislikeCount}개`; }
+  if(boardDislikeBtn){
+    const disliked = auth && post.dislikes && post.dislikes.includes(auth.username);
+    boardDislikeBtn.textContent = disliked ? '싫어요 취소 💔' : '싫어요 💔';
+  }
   renderComments(post);
   boardEditForm && (boardEditForm.hidden = true);
   boardDetailEl.hidden = false;
@@ -329,6 +337,33 @@ boardLikeBtn && boardLikeBtn.addEventListener('click', () => {
     post.likes.splice(index, 1);
   } else {
     post.likes.push(auth.username);
+    if(post.dislikes && post.dislikes.includes(auth.username)){
+      post.dislikes.splice(post.dislikes.indexOf(auth.username), 1);
+    }
+  }
+  saveBoardPosts(posts);
+  renderBoard();
+  renderBoardDetail(post);
+});
+
+boardDislikeBtn && boardDislikeBtn.addEventListener('click', () => {
+  if(!isLoggedIn()){
+    alert('로그인 후 싫어요를 누를 수 있습니다.');
+    return;
+  }
+  const posts = loadBoardPosts();
+  const post = posts.find(item => item.id === currentBoardPostId);
+  if(!post) return;
+  const auth = getAuth();
+  if(!post.dislikes){ post.dislikes = []; }
+  const index = post.dislikes.indexOf(auth.username);
+  if(index >= 0){
+    post.dislikes.splice(index, 1);
+  } else {
+    post.dislikes.push(auth.username);
+    if(post.likes && post.likes.includes(auth.username)){
+      post.likes.splice(post.likes.indexOf(auth.username), 1);
+    }
   }
   saveBoardPosts(posts);
   renderBoard();
