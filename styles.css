@@ -195,6 +195,63 @@ body.board-open::before{
   border-color:var(--accent);
   box-shadow:0 0 0 3px rgba(37,99,235,0.1);
 }
+.file-upload-container{
+  margin:12px 0;
+  padding:12px;
+  background:#f8fbff;
+  border:2px dashed var(--border);
+  border-radius:6px;
+}
+.file-upload-label{
+  display:inline-block;
+  padding:8px 12px;
+  background:var(--accent);
+  color:#fff;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+  font-size:0.9rem;
+}
+#assignment-file{
+  display:none;
+}
+.file-name{
+  margin-left:12px;
+  color:var(--muted);
+  font-size:0.9rem;
+}
+.image-preview{
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.image-preview img{
+  max-width:100px;
+  max-height:100px;
+  border-radius:6px;
+  object-fit:cover;
+  border:1px solid var(--border);
+}
+.assignment-detail{
+  margin-top:12px;
+  border-top:1px solid var(--border);
+  padding-top:12px;
+}
+.assignment-detail-card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(15,23,42,0.08);
+}
+.assignment-detail-image{
+  max-width:100%;
+  max-height:400px;
+  border-radius:8px;
+  margin:12px 0;
+  object-fit:contain;
+}
 button{
   background:var(--accent);
   color:#fff;
