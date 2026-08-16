@@ -33,6 +33,7 @@ function removeStorageValue(key){
 
 const annListEl = document.getElementById('ann-list');
 const addAnnBtn = document.getElementById('add-ann-btn');
+const refreshPageBtn = document.getElementById('refresh-page-btn');
 const openAuthBtn = document.getElementById('open-auth-btn');
 const closeAuthBtn = document.getElementById('close-auth-btn');
 const authPanelSection = document.getElementById('auth-panel-section');
@@ -60,6 +61,7 @@ const boardEditForm = document.getElementById('board-edit-form');
 const boardEditTitleEl = document.getElementById('board-edit-title');
 const boardEditContentEl = document.getElementById('board-edit-content');
 const boardDetailCloseBtn = document.getElementById('board-detail-close');
+const boardDetailRefreshBtn = document.getElementById('board-detail-refresh');
 const boardEditCancelBtn = document.getElementById('board-edit-cancel');
 const boardCommentForm = document.getElementById('board-comment-form');
 const boardCommentInputEl = document.getElementById('board-comment-input');
@@ -72,9 +74,6 @@ let currentBoardPostId = null;
 const assignmentForm = document.getElementById('assignment-form');
 const assignmentTitleEl = document.getElementById('assignment-title');
 const assignmentContentEl = document.getElementById('assignment-content');
-const assignmentFileEl = document.getElementById('assignment-file');
-const fileNameEl = document.getElementById('file-name');
-const imagePreviewEl = document.getElementById('image-preview');
 const assignmentListEl = document.getElementById('assignment-list');
 const assignmentDetailEl = document.getElementById('assignment-detail');
 const assignmentDetailTitleEl = document.getElementById('assignment-detail-title');
@@ -84,7 +83,6 @@ const assignmentDetailContentEl = document.getElementById('assignment-detail-con
 const assignmentDetailActionsEl = document.getElementById('assignment-detail-actions');
 const assignmentDetailCloseBtn = document.getElementById('assignment-detail-close');
 let currentAssignmentId = null;
-let currentAssignmentImage = null;
 
 function loadAnns(){
   const raw = getStorageValue(ANN_KEY);
@@ -197,6 +195,10 @@ loginForm && loginForm.addEventListener('submit', e => {
   } else {
     if(authStatusEl){ authStatusEl.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.'; }
   }
+});
+
+refreshPageBtn && refreshPageBtn.addEventListener('click', () => {
+  window.location.reload();
 });
 
 openAuthBtn && openAuthBtn.addEventListener('click', () => {
@@ -350,6 +352,9 @@ function renderComments(post){
 }
 
 boardDetailCloseBtn && boardDetailCloseBtn.addEventListener('click', closeBoardDetail);
+boardDetailRefreshBtn && boardDetailRefreshBtn.addEventListener('click', () => {
+  window.location.reload();
+});
 boardLikeBtn && boardLikeBtn.addEventListener('click', () => {
   if(!isLoggedIn()){
     alert('로그인 후 좋아요를 누를 수 있습니다.');
@@ -519,24 +524,7 @@ contactForm && contactForm.addEventListener('submit', e => {
   window.location.href = `mailto:youremail@example.com?subject=${subject}&body=${body}`;
 });
 
-// 수행평가자료 기능
-assignmentFileEl && assignmentFileEl.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if(!file) return;
-  if(fileNameEl) fileNameEl.textContent = file.name;
-  const reader = new FileReader();
-  reader.onload = event => {
-    currentAssignmentImage = event.target.result;
-    if(imagePreviewEl){
-      imagePreviewEl.innerHTML = '';
-      const img = document.createElement('img');
-      img.src = currentAssignmentImage;
-      imagePreviewEl.appendChild(img);
-    }
-  };
-  reader.readAsDataURL(file);
-});
-
+// 교사용 수행평가 자료 DB 기능
 function renderAssignments(){
   const assignments = loadAssignments();
   if(!assignmentListEl) return;
@@ -577,10 +565,8 @@ function renderAssignmentDetail(assignment){
   assignmentDetailTitleEl.textContent = assignment.title;
   assignmentDetailMetaEl.textContent = `${assignment.author} · ${assignment.time}`;
   assignmentDetailContentEl.textContent = assignment.content;
-  if(assignment.image){
-    assignmentDetailImageEl.src = assignment.image;
-    assignmentDetailImageEl.style.display = 'block';
-  } else {
+  if(assignmentDetailImageEl){
+    assignmentDetailImageEl.src = '';
     assignmentDetailImageEl.style.display = 'none';
   }
   const auth = getAuth();
@@ -604,6 +590,9 @@ function openAssignmentDetail(assignmentId){
 }
 
 assignmentDetailCloseBtn && assignmentDetailCloseBtn.addEventListener('click', closeAssignmentDetail);
+assignmentDetailRefreshBtn && assignmentDetailRefreshBtn.addEventListener('click', () => {
+  window.location.reload();
+});
 
 assignmentDetailActionsEl && assignmentDetailActionsEl.addEventListener('click', e => {
   const actionBtn = e.target.closest('button[data-action]');
@@ -641,17 +630,12 @@ assignmentForm && assignmentForm.addEventListener('submit', e => {
     id: Date.now(),
     title,
     content,
-    image: currentAssignmentImage || null,
     author: getAuth().username,
     time: new Date().toLocaleString()
   });
   saveAssignments(assignments);
   if(assignmentTitleEl) assignmentTitleEl.value = '';
   if(assignmentContentEl) assignmentContentEl.value = '';
-  if(assignmentFileEl) assignmentFileEl.value = '';
-  if(fileNameEl) fileNameEl.textContent = '';
-  if(imagePreviewEl) imagePreviewEl.innerHTML = '';
-  currentAssignmentImage = null;
   renderAssignments();
 });
 

@@ -19,6 +19,7 @@
         <a href="#contact">문의</a>
       </nav>
       <div class="auth-panel">
+        <button id="refresh-page-btn" class="secondary" type="button">새로고침</button>
         <button id="open-auth-btn" class="secondary" type="button">로그인</button>
         <div id="auth-status" class="auth-status"></div>
         <button id="logout-btn" class="secondary" hidden>로그아웃</button>
@@ -115,7 +116,10 @@
       </div>
       <div id="board-detail" class="board-detail" hidden>
         <div class="board-detail-card">
-          <button id="board-detail-close" class="secondary" type="button">닫기</button>
+          <div class="board-detail-header">
+            <button id="board-detail-close" class="secondary" type="button">닫기</button>
+            <button id="board-detail-refresh" class="secondary" type="button">새로고침</button>
+          </div>
           <h3 id="board-detail-title"></h3>
           <p id="board-detail-meta" class="board-meta"></p>
           <div id="board-detail-content" class="board-detail-content"></div>
@@ -148,26 +152,23 @@
 
     <section id="assignments" class="card assignment-section">
       <div class="section-header">
-        <h2>수행평가자료</h2>
-        <p class="hint">로그인 후 자료를 올릴 수 있습니다.</p>
+        <h2>교사용수행평가 자료 DB</h2>
+        <p class="hint">로그인 후 자료를 올릴 수 있습니다. 사진 업로드는 지원하지 않습니다.</p>
       </div>
       <div class="assignment-upload">
         <form id="assignment-form" class="board-form">
           <input id="assignment-title" name="assignment-title" type="text" placeholder="자료 제목" required />
           <textarea id="assignment-content" name="assignment-content" rows="3" placeholder="자료 설명을 입력하세요" required></textarea>
-          <div class="file-upload-container">
-            <label for="assignment-file" class="file-upload-label">📁 사진 선택</label>
-            <input id="assignment-file" type="file" accept="image/*" />
-            <span id="file-name" class="file-name"></span>
-            <div id="image-preview" class="image-preview"></div>
-          </div>
           <button type="submit">자료 올리기</button>
         </form>
       </div>
       <ul id="assignment-list" class="list"></ul>
       <div id="assignment-detail" class="assignment-detail" hidden>
         <div class="assignment-detail-card">
-          <button id="assignment-detail-close" class="secondary" type="button">닫기</button>
+          <div class="board-detail-header">
+            <button id="assignment-detail-close" class="secondary" type="button">닫기</button>
+            <button id="assignment-detail-refresh" class="secondary" type="button">새로고침</button>
+          </div>
           <h3 id="assignment-detail-title"></h3>
           <p id="assignment-detail-meta" class="board-meta"></p>
           <img id="assignment-detail-image" class="assignment-detail-image" src="" alt="" />
