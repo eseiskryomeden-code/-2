@@ -5,6 +5,7 @@ const AUTH_KEY = 'school_site_auth_v1';
 const USERS_KEY = 'school_site_users_v1';
 const BOARD_KEY = 'school_site_board_posts_v1';
 const ASSIGNMENTS_KEY = 'school_site_assignments_v1';
+const STUDENT_ASSIGNMENTS_KEY = 'school_site_student_assignments_v1';
 const memoryStorage = Object.create(null);
 
 function getStorageValue(key){
@@ -83,6 +84,18 @@ const assignmentDetailContentEl = document.getElementById('assignment-detail-con
 const assignmentDetailActionsEl = document.getElementById('assignment-detail-actions');
 const assignmentDetailCloseBtn = document.getElementById('assignment-detail-close');
 let currentAssignmentId = null;
+const studentAssignmentForm = document.getElementById('student-assignment-form');
+const studentAssignmentTitleEl = document.getElementById('student-assignment-title');
+const studentAssignmentContentEl = document.getElementById('student-assignment-content');
+const studentAssignmentListEl = document.getElementById('student-assignment-list');
+const studentAssignmentDetailEl = document.getElementById('student-assignment-detail');
+const studentAssignmentDetailTitleEl = document.getElementById('student-assignment-detail-title');
+const studentAssignmentDetailMetaEl = document.getElementById('student-assignment-detail-meta');
+const studentAssignmentDetailContentEl = document.getElementById('student-assignment-detail-content');
+const studentAssignmentDetailActionsEl = document.getElementById('student-assignment-detail-actions');
+const studentAssignmentDetailCloseBtn = document.getElementById('student-assignment-detail-close');
+const studentAssignmentDetailRefreshBtn = document.getElementById('student-assignment-detail-refresh');
+let currentStudentAssignmentId = null;
 
 function loadAnns(){
   const raw = getStorageValue(ANN_KEY);
@@ -139,6 +152,15 @@ function loadAssignments(){
 
 function saveAssignments(assignments){
   setStorageValue(ASSIGNMENTS_KEY, JSON.stringify(assignments));
+}
+
+function loadStudentAssignments(){
+  const raw = getStorageValue(STUDENT_ASSIGNMENTS_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function saveStudentAssignments(assignments){
+  setStorageValue(STUDENT_ASSIGNMENTS_KEY, JSON.stringify(assignments));
 }
 
 function isLoggedIn(){
@@ -639,10 +661,116 @@ assignmentForm && assignmentForm.addEventListener('submit', e => {
   renderAssignments();
 });
 
+function renderStudentAssignments(){
+  const assignments = loadStudentAssignments();
+  if(!studentAssignmentListEl) return;
+  studentAssignmentListEl.innerHTML = '';
+  if(assignments.length === 0){
+    studentAssignmentListEl.innerHTML = '<li>공유된 자료가 없습니다.</li>';
+    return;
+  }
+  assignments.slice().reverse().forEach(assignment => {
+    const li = document.createElement('li');
+    const titleButton = document.createElement('button');
+    titleButton.type = 'button';
+    titleButton.className = 'board-post-link';
+    titleButton.textContent = assignment.title;
+    titleButton.addEventListener('click', () => openStudentAssignmentDetail(assignment.id));
+    li.appendChild(titleButton);
+    const meta = document.createElement('div');
+    meta.className = 'board-meta';
+    meta.textContent = `${assignment.author} · ${assignment.time}`;
+    li.appendChild(meta);
+    const content = document.createElement('div');
+    content.textContent = assignment.content;
+    li.appendChild(content);
+    studentAssignmentListEl.appendChild(li);
+  });
+}
+
+function closeStudentAssignmentDetail(){
+  currentStudentAssignmentId = null;
+  if(studentAssignmentDetailEl) studentAssignmentDetailEl.hidden = true;
+  document.body.classList.remove('board-open');
+}
+
+function renderStudentAssignmentDetail(assignment){
+  if(!studentAssignmentDetailEl || !studentAssignmentDetailTitleEl || !studentAssignmentDetailMetaEl || !studentAssignmentDetailContentEl || !studentAssignmentDetailActionsEl) return;
+  currentStudentAssignmentId = assignment.id;
+  document.body.classList.add('board-open');
+  studentAssignmentDetailTitleEl.textContent = assignment.title;
+  studentAssignmentDetailMetaEl.textContent = `${assignment.author} · ${assignment.time}`;
+  studentAssignmentDetailContentEl.textContent = assignment.content;
+  const auth = getAuth();
+  const isOwner = auth && auth.username === assignment.author;
+  if(isOwner){
+    studentAssignmentDetailActionsEl.innerHTML = `
+      <button type="button" data-action="delete">삭제</button>
+    `;
+  } else {
+    studentAssignmentDetailActionsEl.innerHTML = '';
+  }
+  studentAssignmentDetailEl.hidden = false;
+}
+
+function openStudentAssignmentDetail(assignmentId){
+  const assignment = loadStudentAssignments().find(item => item.id === assignmentId);
+  if(assignment){
+    renderStudentAssignmentDetail(assignment);
+  }
+}
+
+studentAssignmentDetailCloseBtn && studentAssignmentDetailCloseBtn.addEventListener('click', closeStudentAssignmentDetail);
+studentAssignmentDetailRefreshBtn && studentAssignmentDetailRefreshBtn.addEventListener('click', () => {
+  window.location.reload();
+});
+
+studentAssignmentDetailActionsEl && studentAssignmentDetailActionsEl.addEventListener('click', e => {
+  const actionBtn = e.target.closest('button[data-action]');
+  if(!actionBtn) return;
+  const action = actionBtn.dataset.action;
+  const assignments = loadStudentAssignments();
+  const assignment = assignments.find(item => item.id === currentStudentAssignmentId);
+  if(!assignment) return;
+  if(action === 'delete'){
+    const nextAssignments = assignments.filter(item => item.id !== currentStudentAssignmentId);
+    saveStudentAssignments(nextAssignments);
+    renderStudentAssignments();
+    closeStudentAssignmentDetail();
+  }
+});
+
+studentAssignmentForm && studentAssignmentForm.addEventListener('submit', e => {
+  e.preventDefault();
+  if(!isLoggedIn()){
+    alert('로그인 후 자료를 공유할 수 있습니다.');
+    return;
+  }
+  const title = studentAssignmentTitleEl ? studentAssignmentTitleEl.value.trim() : '';
+  const content = studentAssignmentContentEl ? studentAssignmentContentEl.value.trim() : '';
+  if(!title || !content){
+    alert('제목과 내용을 모두 입력하세요.');
+    return;
+  }
+  const assignments = loadStudentAssignments();
+  assignments.push({
+    id: Date.now(),
+    title,
+    content,
+    author: getAuth().username,
+    time: new Date().toLocaleString()
+  });
+  saveStudentAssignments(assignments);
+  if(studentAssignmentTitleEl) studentAssignmentTitleEl.value = '';
+  if(studentAssignmentContentEl) studentAssignmentContentEl.value = '';
+  renderStudentAssignments();
+});
+
 function initializeApp(){
   renderAnns();
   renderBoard();
   renderAssignments();
+  renderStudentAssignments();
   renderAuth();
 }
 

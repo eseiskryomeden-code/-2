@@ -178,6 +178,33 @@
       </div>
     </section>
 
+    <section id="student-assignments" class="card assignment-section">
+      <div class="section-header">
+        <h2>학생용수행평가 공유</h2>
+        <p class="hint">로그인 후 학생들이 자료를 공유할 수 있습니다.</p>
+      </div>
+      <div class="assignment-upload">
+        <form id="student-assignment-form" class="board-form">
+          <input id="student-assignment-title" name="student-assignment-title" type="text" placeholder="공유 제목" required />
+          <textarea id="student-assignment-content" name="student-assignment-content" rows="3" placeholder="공유 내용을 입력하세요" required></textarea>
+          <button type="submit">공유하기</button>
+        </form>
+      </div>
+      <ul id="student-assignment-list" class="list"></ul>
+      <div id="student-assignment-detail" class="assignment-detail" hidden>
+        <div class="assignment-detail-card">
+          <div class="board-detail-header">
+            <button id="student-assignment-detail-close" class="secondary" type="button">닫기</button>
+            <button id="student-assignment-detail-refresh" class="secondary" type="button">새로고침</button>
+          </div>
+          <h3 id="student-assignment-detail-title"></h3>
+          <p id="student-assignment-detail-meta" class="board-meta"></p>
+          <div id="student-assignment-detail-content" class="board-detail-content"></div>
+          <div id="student-assignment-detail-actions" class="board-actions"></div>
+        </div>
+      </div>
+    </section>
+
     <section id="survey" class="card">
       <h2>설문조사</h2>
       <p class="hint">아래 버튼을 누르면 Google Forms 설문으로 이동합니다.</p>
